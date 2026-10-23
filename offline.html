@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#00ffff">
+<meta name="description" content="Snake Changer SGS Offline - Sadia Studio">
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" href="./icon-192.png">
+<title>Offline - Snake Changer SGS</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:sans-serif}
+body{background:radial-gradient(circle at top,#001a1a,#080810 70%);color:#fff;min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:16px;text-align:center}
+.card{width:100%;max-width:360px;background:linear-gradient(180deg,#15151f,#111);border:2px solid #00ffff55;border-radius:20px;padding:22px 16px;box-shadow:0 0 30px #00ffff22, inset 0 1px 0 #ffffff11}
+.logo{width:76px;height:76px;border-radius:18px;background:linear-gradient(135deg,#00ffff,#ff00ff);display:flex;align-items:center;justify-content:center;font-weight:900;color:#000;font-size:20px;border:2px solid #fff;margin:0 auto 12px;box-shadow:0 0 18px #00ffff66;animation:float 2.2s infinite ease-in-out}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+h1{color:#fff;font-size:15px;font-weight:900;letter-spacing:0.5px}
+h1 span{color:#00ffff}
+.badge{display:inline-flex;align-items:center;gap:5px;background:#ff334422;border:1px solid #ff334488;color:#ff6677;font-size:7px;font-weight:900;padding:5px 12px;border-radius:99px;margin:10px 0 14px}
+.dot{width:6px;height:6px;background:#ff3344;border-radius:50%;box-shadow:0 0 6px #ff3344;animation:blink 1s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+.msg{color:#bbb;font-size:8.5px;line-height:14px;font-weight:700;margin-bottom:14px}
+.msg b{color:#fff}
+.saveBox{background:#00000066;border:1px dashed #00ffff44;border-radius:12px;padding:10px;margin-bottom:14px;display:grid;grid-template-columns:1fr 1fr;gap:6px;text-align:left}
+.saveBox div{font-size:7px;color:#888} .saveBox b{color:#00ffff;font-size:9px;display:block}
+.btn{width:100%;padding:12px;border-radius:28px;border:none;font-weight:900;font-size:9px;cursor:pointer;transition:0.2s}
+.btn:active{transform:scale(0.97)}
+.btn-main{background:linear-gradient(90deg,#00ffff,#00ff88);color:#000;box-shadow:0 0 12px #00ffff55}
+.btn-sec{background:#1e1e2f;color:#00ffff;border:1px solid #00ffff44;margin-top:8px}
+.foot{margin-top:14px;color:#666;font-size:6px;line-height:10px}
+.foot b{color:#888}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">SGS</div>
+  <h1><span>SNAKE CHANGER</span> - OFFLINE</h1>
+  <div class="badge"><span class="dot"></span> NO INTERNET CONNECTION</div>
+  
+  <div class="msg">
+    You are offline right now.<br>
+    Snake Changer SGS needs internet for first launch.<br>
+    After that you can play offline.<br>
+    <b>Your Coins & Levels are 100% Safe On Device.</b>
+  </div>
+
+  <div class="saveBox">
+    <div>Saved Coins<b id="cBox">--</b></div>
+    <div>Unlocked Level<b id="lvBox">--</b></div>
+    <div>Player ID<b id="idBox">--</b></div>
+    <div>Status<b style="color:#00ff88">SECURE BACKUP ACTIVE ✓</b></div>
+  </div>
+
+  <button class="btn btn-main" onclick="tryRetry()">RETRY CONNECTION - TRY AGAIN</button>
+  <button class="btn btn-sec" onclick="goGame()">PLAY OFFLINE - GO TO GAME</button>
+
+  <div class="foot">
+    <b>Sadia Studio - Habib ur Rahman</b><br>
+    Snake Changer SGS 1.0.0 | UpToDown Edition<br>
+    Privacy: No Data Collected | All Progress Saved Locally<br>
+    Auto Reload When Internet Is Back...
+  </div>
+</div>
+
+<script>
+function loadSave(){
+  try{
+    document.getElementById('cBox').innerText = (localStorage.getItem('c') || '500') + ' COINS';
+    let maxLv=1; for(let i=1;i<=15;i++){ if(localStorage.getItem('lvUnlock_'+i)=='1') maxLv=i; }
+    let cur = localStorage.getItem('curLv') || '1';
+    document.getElementById('lvBox').innerText = 'Lv ' + cur + ' / Max ' + maxLv;
+    document.getElementById('idBox').innerText = (localStorage.getItem('sgs_player_id') || 'SGS-GUEST').slice(0,12);
+  }catch(e){}
+}
+loadSave();
+
+function tryRetry(){
+  let btn = document.querySelector('.btn-main');
+  btn.innerText = 'CHECKING CONNECTION...';
+  if(navigator.onLine){
+    location.reload();
+  } else {
+    btn.innerText = 'STILL OFFLINE - TRY AGAIN';
+    setTimeout(()=>{ btn.innerText='RETRY CONNECTION - TRY AGAIN'; }, 1500);
+    if(navigator.vibrate) navigator.vibrate(50);
+  }
+}
+
+function goGame(){
+  window.location.href = './index.html';
+}
+
+window.addEventListener('online', ()=>{
+  document.querySelector('.badge').innerHTML = '<span class="dot" style="background:#00ff88;box-shadow:0 0 6px #00ff88"></span> BACK ONLINE - RELOADING...';
+  document.querySelector('.badge').style.color='#00ff88';
+  document.querySelector('.badge').style.borderColor='#00ff8855';
+  document.querySelector('.badge').style.background='#00ff8822';
+  setTimeout(()=>location.reload(), 800);
+});
+</script>
+</body>
+</html>
