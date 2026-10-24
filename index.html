@@ -154,26 +154,9 @@ function loginWithGmail(){
   if(typeof firebase === 'undefined' || !firebase.apps.length){ alert("Firebase not configured"); return; }
   let provider = new firebase.auth.GoogleAuthProvider();
   if(firebase.auth().currentUser && firebase.auth().currentUser.isAnonymous){
-    firebase.auth().currentUser.linkWithPopup(provider).then(res=>{
-      SGS_safeSet("gmail", res.user.email);
-      SGS_safeSet("uid", res.user.uid);
-      cloudSave();
-      location.reload();
-    }).catch(err=>{ 
-      firebase.auth().signInWithPopup(provider).then(res=>{
-        SGS_safeSet("gmail", res.user.email);
-        SGS_safeSet("uid", res.user.uid);
-        cloudSave();
-        location.reload();
-      });
-    });
+    firebase.auth().currentUser.linkWithRedirect(provider);
   } else {
-    firebase.auth().signInWithPopup(provider).then(res=>{
-      SGS_safeSet("gmail", res.user.email);
-      SGS_safeSet("uid", res.user.uid);
-      cloudSave();
-      location.reload();
-    }).catch(err=>{ alert("Login Error: "+err.message); });
+    firebase.auth().signInWithRedirect(provider);
   }
 }
 </script>
