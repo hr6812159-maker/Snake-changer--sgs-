@@ -652,6 +652,7 @@ function rateApp(){
 
 function showRewardedInterstitial(titleText, cb){
   initA();
+  if(window.StartAppAds) StartAppAds.showAd();
   adRewardCallback=cb;
   let overlay=document.getElementById('adOverlay');
   let timerEl=document.getElementById('adTimer');
