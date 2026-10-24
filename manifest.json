@@ -1,13 +1,18 @@
 {
-  "name": "Snake Changer SGS",
-  "short_name": "Snake Changer",
+  "id": "/Snake-changer--sgs-/",
+  "name": "Sadia Studio SGS Mobile Snake Game",
+  "short_name": "SGS Snake",
   "description": "Sadia Studio SGS Mobile HTML5 Snake Game with Firebase Auth and Local Backup.",
-  "start_url": "./index.html",
-  "scope": "./",
+  "start_url": "/Snake-changer--sgs-/",
+  "scope": "/Snake-changer--sgs-/",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
   "orientation": "portrait",
-  "background_color": "#080810",
-  "theme_color": "#00ffff",
+  "background_color": "#000000",
+  "theme_color": "#00ff88",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["games", "entertainment"],
   "icons": [
     {
       "src": "icon-192.png",
@@ -20,6 +25,21 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "wide"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Play Snake",
+      "url": "/Snake-changer--sgs-/",
+      "description": "Start playing Snake Game"
     }
   ]
 }
