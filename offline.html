@@ -35,47 +35,42 @@ h1 span{color:#00ffff}
 <div class="card">
   <div class="logo">SGS</div>
   <h1><span>SNAKE CHANGER</span> - OFFLINE</h1>
-  <div class="badge"><span class="dot"></span> NO INTERNET CONNECTION</div>
-  
-  <div class="msg">
-    You are offline right now.<br>
-    Snake Changer SGS needs internet for first launch.<br>
-    After that you can play offline.<br>
-    <b>Your Coins & Levels are 100% Safe On Device.</b>
-  </div>
-
+  <div class="badge" id="statusBadge"><span class="dot"></span> NO INTERNET CONNECTION</div>
+  <div class="msg">You are offline right now.<br>Snake Changer SGS needs internet for first launch.<br>After that you can play offline.<br><b>Your Coins & Levels are 100% Safe On Device.</b></div>
   <div class="saveBox">
     <div>Saved Coins<b id="cBox">--</b></div>
     <div>Unlocked Level<b id="lvBox">--</b></div>
     <div>Player ID<b id="idBox">--</b></div>
     <div>Status<b style="color:#00ff88">SECURE BACKUP ACTIVE ✓</b></div>
   </div>
-
-  <button class="btn btn-main" onclick="tryRetry()">RETRY CONNECTION - TRY AGAIN</button>
+  <button class="btn btn-main" id="retryBtn" onclick="tryRetry()">RETRY CONNECTION - TRY AGAIN</button>
   <button class="btn btn-sec" onclick="goGame()">PLAY OFFLINE - GO TO GAME</button>
-
-  <div class="foot">
-    <b>Sadia Studio - Habib ur Rahman</b><br>
-    Snake Changer SGS 1.0.0 | UpToDown Edition<br>
-    Privacy: No Data Collected | All Progress Saved Locally<br>
-    Auto Reload When Internet Is Back...
-  </div>
+  <div class="foot"><b>Sadia Studio - Habib ur Rahman</b><br>Snake Changer SGS 2.0.0 | UpToDown Edition<br>Privacy: No Data Collected | All Progress Saved Locally<br>Auto Reload When Internet Is Back...</div>
 </div>
-
 <script>
+function SGS_safeGet(k, def){
+  try{
+    let v = localStorage.getItem(k);
+    if(v===null || v==='null' || v==='undefined') return def;
+    return v;
+  }catch(e){ return def; }
+}
 function loadSave(){
   try{
-    document.getElementById('cBox').innerText = (localStorage.getItem('c') || '500') + ' COINS';
-    let maxLv=1; for(let i=1;i<=15;i++){ if(localStorage.getItem('lvUnlock_'+i)=='1') maxLv=i; }
-    let cur = localStorage.getItem('curLv') || '1';
-    document.getElementById('lvBox').innerText = 'Lv ' + cur + ' / Max ' + maxLv;
-    document.getElementById('idBox').innerText = (localStorage.getItem('sgs_player_id') || 'SGS-GUEST').slice(0,12);
+    let coins = SGS_safeGet('c', SGS_safeGet('sgs_backup_c', '500'));
+    let backupLv = 1;
+    for(let i=1;i<=15;i++){ if(SGS_safeGet('lvUnlock_'+i, '0')=='1') backupLv=i; }
+    let curLv = SGS_safeGet('curLv', SGS_safeGet('sgs_backup_lv', backupLv.toString()));
+    let pid = SGS_safeGet('sgs_player_id', 'SGS-GUEST');
+    
+    document.getElementById('cBox').innerText = coins + ' COINS';
+    document.getElementById('lvBox').innerText = 'Lv ' + curLv + ' / Max ' + backupLv;
+    document.getElementById('idBox').innerText = pid.slice(0,10);
   }catch(e){}
 }
 loadSave();
-
 function tryRetry(){
-  let btn = document.querySelector('.btn-main');
+  let btn = document.getElementById('retryBtn');
   btn.innerText = 'CHECKING CONNECTION...';
   if(navigator.onLine){
     location.reload();
@@ -85,16 +80,11 @@ function tryRetry(){
     if(navigator.vibrate) navigator.vibrate(50);
   }
 }
-
-function goGame(){
-  window.location.href = './index.html';
-}
-
+function goGame(){ window.location.href = './index.html'; }
 window.addEventListener('online', ()=>{
-  document.querySelector('.badge').innerHTML = '<span class="dot" style="background:#00ff88;box-shadow:0 0 6px #00ff88"></span> BACK ONLINE - RELOADING...';
-  document.querySelector('.badge').style.color='#00ff88';
-  document.querySelector('.badge').style.borderColor='#00ff8855';
-  document.querySelector('.badge').style.background='#00ff8822';
+  let badge = document.getElementById('statusBadge');
+  badge.innerHTML = '<span class="dot" style="background:#00ff88;box-shadow:0 0 6px #00ff88"></span> BACK ONLINE - RELOADING...';
+  badge.style.color='#00ff88'; badge.style.borderColor='#00ff8855'; badge.style.background='#00ff8822';
   setTimeout(()=>location.reload(), 800);
 });
 </script>
