@@ -789,15 +789,18 @@ function openSettings(){
 }
 
 function exitGame(){
-  if(!confirm('Exit Snake Changer? ID '+sgsPlayerId+' Safe থাকবে!')) return;
+  if(!confirm('Exit Snake Changer? Your Progress is Safe! ID: '+sgsPlayerId)) return;
   try{ cloudSave(); }catch(e){}
   try{
     if(window.Android && Android.exitApp){ Android.exitApp(); return; }
-    if(window.Capacitor && Capacitor.Plugins.App.exitApp){ Capacitor.Plugins.App.exitApp(); return; }
+    if(window.Capacitor && Capacitor.Plugins && Capacitor.Plugins.App && Capacitor.Plugins.App.exitApp){ Capacitor.Plugins.App.exitApp(); return; }
     if(navigator.app && navigator.app.exitApp){ navigator.app.exitApp(); return; }
   }catch(e){}
-  document.body.innerHTML = "<div style='background:#000;color:#00ffff;height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;font-family:sans-serif'><div style='width:80px;height:80px;border-radius:18px;background:linear-gradient(135deg,#00ffff,#ff00ff);display:flex;align-items:center;justify-content:center;font-weight:900;color:#000;font-size:20px;border:2px solid #fff'>SGS</div><b style='font-size:22px;margin-top:15px'>SGS CLOSED</b><div style='color:#ffeb3b;margin-top:10px'>ID: "+sgsPlayerId+" Safe</div><button onclick='window.close();history.back();' style='margin-top:20px;padding:10px 20px;background:#00ffff;color:#000;border:none;border-radius:20px;font-weight:900'>CLOSE</button></div>";
-  setTimeout(()=>{ try{window.open('','_self',''); window.close();}catch(e){} },300);
+  try{ window.close(); }catch(e){}
+  setTimeout(()=>{
+    document.body.innerHTML = "<div style='background:#000;color:#00ffff;height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;font-family:sans-serif'><div style='width:80px;height:80px;border-radius:18px;background:linear-gradient(135deg,#00ffff,#ff00ff);display:flex;align-items:center;justify-content:center;font-weight:900;color:#000;font-size:20px;border:2px solid #fff'>SGS</div><b style='font-size:22px;margin-top:15px'>SGS CLOSED</b><div style='color:#ffeb3b;margin-top:10px'>ID: "+sgsPlayerId+" is Safe</div><button onclick='location.reload()' style='margin-top:20px;padding:10px 20px;border-radius:10px;border:none;background:#00ffff;color:#000;font-weight:900'>RE-OPEN GAME</button></div>";
+    try{ window.open('','_self',''); window.close(); }catch(e){}
+  }, 300);
 }
 
 function togglePause(){
