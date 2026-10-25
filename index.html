@@ -532,37 +532,38 @@ let steps=[
 ];
 
 let loader=setInterval(()=>{
-  loadP+=1; if(loadP>100) loadP=100;
-  if(barEl) barEl.style.width=loadP+'%';
-  if(loadTextEl) loadTextEl.innerText=loadP+'%';
+    loadP+=1; if(loadP>100) loadP=100;
+    if(barEl) barEl.style.width=loadP+'%';
+    if(loadTexEl) loadTexEl.innerText=loadP+'%';
 
-  steps.forEach(s=>{
-    if(loadP==s.p){
-      let el=document.getElementById(s.id);
-      if(el){ el.classList.add('show','done'); el.innerText=s.t; }
-      sgs_Horror_Hiss_Laugh(s.v);
+    steps.forEach(s=>{
+        if(loadP == s.p){
+            let el=document.getElementById(s.id);
+            if(el){ el.classList.add('show', 'done'); }
+            el.innerText=s.t; 
+            // sgs_Horror_Hiss_Laugh(s.v);
+        }
+    });
+
+    // if(loadP==1) sgs_Horror_Hiss_Laugh('S G S Snake Changer... hehe ssss');
+
+    if(loadP>=100){
+        clearInterval(loader);
+        setTimeout(()=>{
+            let tap=document.getElementById('tapBtn');
+            if(tap){
+                tap.style.display='block';
+                tap.onclick=()=>{
+                    initA();
+                    document.getElementById('loading').style.display='none';
+                    applyLevelTheme();
+                    render();
+                    start();
+                    draw();
+                };
+            }
+        },600);
     }
-  });
-
-  if(loadP==1) sgs_Horror_Hiss_Laugh('S G S Snake Changer... hehe ssss');
-  
-  if(loadP>=100){
-    clearInterval(loader);
-    setTimeout(()=>{
-      let tap=document.getElementById('tapBtn'); 
-      if(tap){ 
-        tap.style.display='block';
-        tap.onclick=()=>{
-          initA();
-          document.getElementById('loading').style.display='none';
-          applyLevelTheme(); 
-          render(); 
-          start();
-          draw(); 
-        };
-      }
-    },600);
-  }
 }, 85);
 
 function tone(f,d,type='sine',vol=0.32){if(!soundOn)return;initA();try{let o=ac.createOscillator(),g=ac.createGain();o.type=type;o.frequency.setValueAtTime(f,ac.currentTime);o.connect(g);g.connect(ac.destination);g.gain.setValueAtTime(vol,ac.currentTime);g.gain.exponentialRampToValueAtTime(0.01,ac.currentTime+d/1000);o.start();o.stop(ac.currentTime+d/1000)}catch(e){}}
