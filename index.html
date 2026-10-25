@@ -70,15 +70,11 @@ function SGS_safeSet(key, val) {
   } catch (e) {}
 })();
 </script>
-
-<script>var startAppId = "209186654"; SGS_safeSet("app_id", "209186654");</script>
-<script async defer src="https://cdn.start.io/app/js/startapp.js" onerror="console.log('Start.io script blocked safely')"></script>
-
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <script>
-// fixed login 2026
+var startAppId = "209186654"; SGS_safeSet("app_id", "209186654");
 const firebaseConfig = {
   apiKey: "AIzaSyCC2QLIC885rPjshBpJ_kuww7EgxLeg7dg",
   authDomain: "snake-changer-sgs.firebaseapp.com",
@@ -87,17 +83,9 @@ const firebaseConfig = {
   messagingSenderId: "1038782118935",
   appId: "1:1038782118935:web:d5341ecdbcec87f28fb052"
 };
-try{ 
-  if(firebaseConfig.apiKey !== "YOUR_API_KEY") firebase.initializeApp(firebaseConfig); 
-}catch(e){}
-
+try{ if(firebaseConfig.apiKey !== "YOUR_API_KEY") firebase.initializeApp(firebaseConfig); }catch(e){}
 let db = null;
-try {
-  if(typeof firebase !== 'undefined' && firebase.apps.length){
-    db = firebase.firestore();
-  }
-}catch(e){}
-
+try{ if(typeof firebase !== 'undefined' && firebase.apps.length){ db = firebase.firestore(); } }catch(e){}
 let currentUser = null;
 try{
   firebase.auth().onAuthStateChanged(user => {
@@ -111,10 +99,9 @@ try{
     }
   });
 }catch(e){}
-
 function cloudSave(){
   if(!db || !currentUser) return;
-  try {
+  try{
     let data = {
       coins: SGS_safeGet('c', '500'),
       curLv: SGS_safeGet('curLv', '1'),
@@ -123,16 +110,14 @@ function cloudSave(){
       updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     };
     db.collection('sgs_users').doc(currentUser.uid).set(data, {merge: true}).then(()=>{});
-  } catch(e){}
+  }catch(e){}
 }
-
 function cloudLoad(){
   if(!db || !currentUser) return;
-  try {
+  try{
     db.collection('sgs_users').doc(currentUser.uid).get().then(doc=>{
       if(doc.exists){
         let d = doc.data();
-        // FIX 3: d.coins !== undefined check for zero coin safety
         if(d.coins !== undefined && parseInt(d.coins) > parseInt(SGS_safeGet('c','500'))){
           updateAllCoins(d.coins);
         }
@@ -147,17 +132,33 @@ function cloudLoad(){
         syncFinalBars();
       }
     }).catch(err=>{});
-  } catch(e){}
+  }catch(e){}
 }
-
 function loginWithGmail(){
   if(!navigator.onLine){ alert("Online connection required for Gmail Login"); return; }
   if(typeof firebase === 'undefined' || !firebase.apps.length){ alert("Firebase not configured"); return; }
   let provider = new firebase.auth.GoogleAuthProvider();
   if(firebase.auth().currentUser && firebase.auth().currentUser.isAnonymous){
-    firebase.auth().currentUser.linkWithRedirect(provider);
+    firebase.auth().currentUser.linkWithPopup(provider).then(res=>{
+      SGS_safeSet("gmail", res.user.email);
+      SGS_safeSet("uid", res.user.uid);
+      cloudSave();
+      location.reload();
+    }).catch(err=>{
+      firebase.auth().signInWithPopup(provider).then(res=>{
+        SGS_safeSet("gmail", res.user.email);
+        SGS_safeSet("uid", res.user.uid);
+        cloudSave();
+        location.reload();
+      });
+    });
   } else {
-    firebase.auth().signInWithRedirect(provider);
+    firebase.auth().signInWithPopup(provider).then(res=>{
+      SGS_safeSet("gmail", res.user.email);
+      SGS_safeSet("uid", res.user.uid);
+      cloudSave();
+      location.reload();
+    }).catch(err=>{ alert("Login Error: "+err.message); });
   }
 }
 </script>
