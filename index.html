@@ -1435,6 +1435,21 @@ window.addEventListener('popstate', ()=>{
   }
 });
 
+// FORCE FIX - 0% stuck bypass
+setTimeout(()=>{
+let x = document.getElementById('loading');
+if(x){
+x.style.display='none';
+try{
+initA();
+applyLevelTheme();
+render();
+start();
+draw();
+}catch(e){}
+}
+}, 2000);
+
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js')
