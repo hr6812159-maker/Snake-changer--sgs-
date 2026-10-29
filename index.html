@@ -58,7 +58,6 @@ function SGS_safeSet(key, val) {
     }
 
     let pid = SGS_safeGet('sgs_player_id', null);
-    // FIX 1: length 9 -> 10 (SGS- [4] + 6 = 10)
     if (!pid || pid.length !== 10 || !pid.startsWith('SGS-')) {
       const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
       let shortRand = '';
@@ -248,18 +247,9 @@ body{background:#080810;color:#fff;height:100vh;display:flex;flex-direction:colu
 <div id="tapBtn" style="display:none;margin-top:14px;padding:10px 24px;background:#00ff88;color:#000;font-weight:900;border-radius:20px;cursor:pointer">TAP TO ENTER - SGS</div>
 </div>
 
-<div class="bannerTop" id="bannerContainer">
-  <div style="color:#00ffff;font-size:8px;font-weight:900">START.IO BANNER AD SLOT (209186654)</div>
+<div class="bannerTop" id="bannerContainer" style="background:#111;display:flex;align-items:center;justify-content:center;color:#333;font-size:7px">
+  SGS AD SPACE - SAFE
 </div>
-<script>
-  setTimeout(()=>{
-    try {
-      if(typeof startapp !== 'undefined' && startapp.showBanner){
-        startapp.showBanner({appId: "209186654"});
-      }
-    } catch(e) {}
-  }, 1000);
-</script>
 
 <div id="playerBoxFinal" onclick="openProfile()">
   <canvas id="avatarCanvas" width="36" height="36"></canvas>
@@ -360,7 +350,7 @@ body{background:#080810;color:#fff;height:100vh;display:flex;flex-direction:colu
     <div class="setRow"><span>Vibration</span><button id="vibBtn" class="buy use" onclick="toggleVib()">ON</button></div>
     <div class="setRow"><span>Trail Effect</span><button id="trailBtn" class="buy use" onclick="toggleTrail()">ON</button></div>
     <div class="setRow"><span>Secure Data Reset (Clears Score Only)</span><button class="buy" style="background:#ff4444;color:#fff" onclick="resetGameData()">SECURE RESET</button></div>
-    
+
     <div style="background:#111;border:2px solid #00ff88;border-radius:12px;padding:10px;margin-top:10px;font-size:7px;color:#ccc;line-height:13px">
       <b style="color:#00ff88;font-size:8px">📌 Game Info & Official Privacy Policy:</b><br>
       • <b>Game Name:</b> Snake Changer (SGS Edition)<br>
@@ -373,7 +363,7 @@ body{background:#080810;color:#fff;height:100vh;display:flex;flex-direction:colu
 
 <div id="adOverlay" style="position:fixed;inset:0;background:rgba(0,0,0,0.95);display:none;flex-direction:column;justify-content:center;align-items:center;z-index:999999;padding:20px">
   <div style="background:#111;border:2px solid #00ffff;border-radius:14px;padding:20px;max-width:320px;width:100%;text-align:center">
-    <div id="adTitleBanner" style="color:#00ffff;font-weight:900;font-size:12px;margin-bottom:10px">REWARDED INTERSTITIAL AD - START.IO</div>
+    <div id="adTitleBanner" style="color:#00ffff;font-weight:900;font-size:12px;margin-bottom:10px">REWARDED INTERSTITIAL AD - SAFE</div>
     <div style="background:#222;height:100px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#ffeb3b;font-size:10px;margin-bottom:15px">
       Snake Changer Rewarded Ad<br>Watch ad completely for bonus reward...
     </div>
@@ -393,7 +383,6 @@ const START_COINS=500;
 const FOOD_EARN=50;
 
 let sgsPlayerId = SGS_safeGet('sgs_player_id', null);
-// FIX 2: length 9 -> 10 (SGS- [4] + 6 = 10)
 if(!sgsPlayerId || sgsPlayerId.length !== 10){
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   let shortRand = '';
@@ -490,23 +479,6 @@ if(ac.state==='suspended') ac.resume();
 }
 document.addEventListener('click', initA, {once:true});
 document.addEventListener('touchstart', initA, {once:true});
-function sgs_Horror_Hiss_Laugh(text){
-initA();
-if(!ac || !ac.currentTime) return;
-let now=ac.currentTime;
-try{
-let b=ac.createBuffer(1, ac.sampleRate*1.0, ac.sampleRate);
-let d=b.getChannelData(0);
-for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*0.45;
-let n=ac.createBufferSource(); n.buffer=b;
-let f=ac.createBiquadFilter(); f.type='bandpass'; f.frequency.value=4000; f.Q.value=6;
-let g=ac.createGain(); g.gain.setValueAtTime(0.55, now); g.gain.linearRampToValueAtTime(0.01, now+0.95);
-n.connect(f); f.connect(g); g.connect(ac.destination); n.start(now); n.stop(now+1.0);
-}catch(e){}
-}
-  setTimeout(()=>{ try{ for(let k=0;k<3;k++){ let o=ac.createOscillator(), gg=ac.createGain(); o.type='sine'; o.frequency.setValueAtTime(260+k*35, ac.currentTime); o.frequency.linearRampToValueAtTime(390, ac.currentTime+0.16); gg.gain.setValueAtTime(0.13, ac.currentTime); gg.gain.exponentialRampToValueAtTime(0.01, ac.currentTime+0.2); o.connect(gg); gg.connect(ac.destination); o.start(); o.stop(ac.currentTime+0.2);} }catch(e){} }, 180);
-  setTimeout(()=>{ if('speechSynthesis' in window){ speechSynthesis.cancel(); let u=new SpeechSynthesisUtterance(text); u.lang='en-US'; u.rate=0.7; u.pitch=0.3; u.volume=1; speechSynthesis.speak(u);} }, 420);
-}
 
 function playSpecialCoinSound(){
   initA();
@@ -525,28 +497,24 @@ let barEl=document.getElementById('bar');
 let loadTextEl=document.getElementById('loadText');
 
 let steps=[
-  {p:5,  id:'s1', t:'☑ Engine Hissing Active - SGS Core', v:'S G S... hehe... Engine hissing'},
-  {p:28, id:'s2', t:'☑ 15 Levels OK - 15 Snakes Found', v:'Fifteen levels... fifteen snakes... ssss'},
-  {p:48, id:'s3', t:'☑ Skins OK - Food Body Head Ready', v:'Food Body Head... hehe ready'},
-  {p:70, id:'s4', t:'☑ Coins Safe - Server Connected', v:'Coins safe... server connected'},
-  {p:88, id:'s5', t:'☑ Player Ready - Snake Changer SGS', v:'Player ready... Snake Changer S G S... hehe'}
+  {p:5,  id:'s1', t:'☑ Engine Hissing Active - SGS Core'},
+  {p:28, id:'s2', t:'☑ 15 Levels OK - 15 Snakes Found'},
+  {p:48, id:'s3', t:'☑ Skins OK - Food Body Head Ready'},
+  {p:70, id:'s4', t:'☑ Coins Safe - Server Connected'},
+  {p:88, id:'s5', t:'☑ Player Ready - Snake Changer SGS'}
 ];
 
 let loader=setInterval(()=>{
     loadP+=1; if(loadP>100) loadP=100;
     if(barEl) barEl.style.width=loadP+'%';
-    if(loadTexEl) loadTexEl.innerText=loadP+'%';
+    if(loadTextEl) loadTextEl.innerText=loadP+'%';
 
     steps.forEach(s=>{
         if(loadP == s.p){
             let el=document.getElementById(s.id);
-            if(el){ el.classList.add('show', 'done'); }
-            el.innerText=s.t; 
-            // sgs_Horror_Hiss_Laugh(s.v);
+            if(el){ el.classList.add('show', 'done'); el.innerText=s.t; }
         }
     });
-
-    // if(loadP==1) sgs_Horror_Hiss_Laugh('S G S Snake Changer... hehe ssss');
 
     if(loadP>=100){
         clearInterval(loader);
@@ -654,7 +622,6 @@ function rateApp(){
 
 function showRewardedInterstitial(titleText, cb){
   initA();
-  if(window.StartAppAds) StartAppAds.showAd();
   adRewardCallback=cb;
   let overlay=document.getElementById('adOverlay');
   let timerEl=document.getElementById('adTimer');
@@ -672,11 +639,11 @@ function showRewardedInterstitial(titleText, cb){
     };
   }
   let timeLeft=5;
-  if(timerEl) timerEl.innerText='Start.io Rewarded Interstitial Ad closing in '+timeLeft+'s...';
+  if(timerEl) timerEl.innerText='Safe Rewarded Ad closing in '+timeLeft+'s...';
   let adInterval=setInterval(()=>{
     timeLeft--;
     if(timeLeft>0){
-      if(timerEl) timerEl.innerText='Start.io Rewarded Interstitial Ad closing in '+timeLeft+'s...';
+      if(timerEl) timerEl.innerText='Safe Rewarded Ad closing in '+timeLeft+'s...';
     }else{
       clearInterval(adInterval);
       if(timerEl) timerEl.innerText='Ad finished! You can now claim your reward.';
@@ -857,7 +824,7 @@ const foodItems=[
 {n:'Yellow Star',color:'#ffeb3b',shape:'star',price:150},
 {n:'Purple Diamond',color:'#aa00ff',shape:'diamond',price:200},
 {n:'Cyan Heart',color:'#00e5ff',shape:'heart',price:250},
-{n:'Green Triangle',color:'#00ff88',shape:'triangle',price:300},
+{n:'Green Triangle',color:#00ff88',shape:'triangle',price:300},
 {n:'Pink Square',color:'#ff88cc',shape:'square',price:350},
 {n:'Orange Hexagon',color:'#ff9900',shape:'hexagon',price:400},
 {n:'White Moon',color:'#ffffff',shape:'moon',price:450},
@@ -984,7 +951,7 @@ if(coins>=pr){
   SGS_safeSet(pre+i,'1');
   cloudSave();
   sel[key]=idx;render();draw();
-}else{alert('Need '+pr+' Coin - Have '+coins+' - Watch Start.io Ad in Shop or Spin for Coins - Snake Changer');}
+}else{alert('Need '+pr+' Coin - Have '+coins+' - Watch Ad in Shop or Spin for Coins - Snake Changer');}
 }
 
 function renderLv(){
@@ -1017,9 +984,9 @@ let lvM = document.getElementById('lvM');
 if(lvM) lvM.style.display='none';
 start();
 draw();
-alert('Lv'+lv+' Unlocked! - Snake Changer');
+alert('Level '+lv+' Unlocked Successfully! - Snake Changer');
 }else{
-alert('Need '+cost.toLocaleString()+' Coin - Have '+coins.toLocaleString());
+alert('Need '+cost.toLocaleString()+' Coins - You have '+coins.toLocaleString());
 }
 }
 
@@ -1346,20 +1313,20 @@ function syncFinalBars(){
     let lv = parseInt(SGS_safeGet('curLv', '1'));
     let maxLv = 1;
     for(let i=1; i<=15; i++){ if(isLevelUnlocked(i)) maxLv = i; }
-    
+
     let speed = getSpeed();
     let sTB = document.getElementById('speedTopBar');
     if(sTB) sTB.innerText = speed + "ms";
-    
+
     let scTB = document.getElementById('scoreTopBar');
     if(scTB) scTB.innerText = score;
-    
+
     let nLvTB = document.getElementById('nowLvTopBar'); if(nLvTB) nLvTB.innerText = lv;
     let cBadge = document.getElementById('curLvBadge'); if(cBadge) cBadge.innerText = lv;
     let uFin = document.getElementById('unlockedFinal'); if(uFin) uFin.innerText = maxLv;
     let lFinEl = document.getElementById('leftFinal'); if(lFinEl) lFinEl.innerText = 15 - maxLv;
     let sgsIdFin = document.getElementById('sgsPlayerIdFinal'); if(sgsIdFin) sgsIdFin.innerText = SGS_safeGet('sgs_player_id', sgsPlayerId);
-    
+
     let gmailVal = SGS_safeGet('gmail', 'Guest');
     let gmailFin = document.getElementById('gmailFinal'); 
     if(gmailFin) gmailFin.innerText = (gmailVal ? gmailVal : 'Guest').substring(0, 12);
@@ -1435,7 +1402,6 @@ window.addEventListener('popstate', ()=>{
   }
 });
 
-// FORCE FIX - 0% stuck bypass
 setTimeout(()=>{
 let x = document.getElementById('loading');
 if(x){
@@ -1449,6 +1415,16 @@ draw();
 }catch(e){}
 }
 }, 2000);
+
+window.SGS_LOAD_AD = function(){
+  console.log('SGS Ad Ready - Safe integration active');
+}
+
+window.addEventListener('load', function(){
+  setTimeout(function(){
+    SGS_LOAD_AD();
+  }, 5000);
+});
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
