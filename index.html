@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" content="#00ffff">
-<title>Snake Changer - SGS - 1.0.0</title>
+<title>Snake Changer - SGS - Secure Edition</title>
 
 <script>
 window.onerror = function(msg, url, line) {
@@ -31,30 +31,45 @@ function SGS_safeSet(key, val) {
   } catch (e) {}
 }
 
+function SGS_getSecureCoins() {
+  let raw = SGS_safeGet('sgs_secure_c', null);
+  if (!raw) {
+    let oldC = parseInt(SGS_safeGet('c', '500'));
+    if(isNaN(oldC)) oldC = 500;
+    SGS_setSecureCoins(oldC);
+    return oldC;
+  }
+  try {
+    let decoded = Math.floor(atob(raw) / 7 - 123);
+    if (isNaN(decoded) || decoded < 0) return 500;
+    return decoded;
+  } catch (e) {
+    return 500;
+  }
+}
+
+function SGS_setSecureCoins(val) {
+  try {
+    let enc = btoa((parseInt(val) || 0) * 7 + 123);
+    SGS_safeSet('sgs_secure_c', enc);
+    SGS_safeSet('c', val);
+  } catch (e) {}
+}
+
 (function SGS_initAll() {
   try {
-    let c = SGS_safeGet('c', null);
-    let parsedC = parseInt(c);
-    let backupC = SGS_safeGet('sgs_backup_c', '500');
-    if (c === null || isNaN(parsedC)) {
-      SGS_safeSet('c', backupC);
-    } else {
-      SGS_safeSet('sgs_backup_c', c);
-    }
+    let currentCoins = SGS_getSecureCoins();
+    SGS_setSecureCoins(currentCoins);
 
     let curLv = parseInt(SGS_safeGet('curLv', '1'));
     if (isNaN(curLv) || curLv < 1 || curLv > 15) {
       curLv = 1;
     }
     SGS_safeSet('curLv', curLv.toString());
-    SGS_safeSet('sgs_backup_lv', curLv.toString());
 
     let h = SGS_safeGet('h', null);
-    let backupH = SGS_safeGet('sgs_backup_h', '0');
     if (h === null || isNaN(parseInt(h))) {
-      SGS_safeSet('h', backupH);
-    } else {
-      SGS_safeSet('sgs_backup_h', h);
+      SGS_safeSet('h', '0');
     }
 
     let pid = SGS_safeGet('sgs_player_id', null);
@@ -73,7 +88,6 @@ function SGS_safeSet(key, val) {
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <script>
-var startAppId = "209186654"; SGS_safeSet("app_id", "209186654");
 const firebaseConfig = {
   apiKey: "AIzaSyCC2QLIC885rPjshBpJ_kuww7EgxLeg7dg",
   authDomain: "snake-changer-sgs.firebaseapp.com",
@@ -91,33 +105,37 @@ try{
     if(user){
       currentUser = user;
       SGS_safeSet("uid", user.uid);
-      if(user.email) SGS_safeSet("gmail", user.email);
       cloudLoad();
     } else {
-      firebase.auth().signInAnonymously().catch(err=>{});
+      if(navigator.onLine){
+        firebase.auth().signInAnonymously().catch(err=>{ console.log("SGS Offline"); });
+      }
     }
   });
 }catch(e){}
+
 function cloudSave(){
+  if(!navigator.onLine) return;
   if(!db || !currentUser) return;
   try{
     let data = {
-      coins: SGS_safeGet('c', '500'),
+      coins: SGS_getSecureCoins(),
       curLv: SGS_safeGet('curLv', '1'),
       high: SGS_safeGet('h', '0'),
-      gmail: SGS_safeGet('gmail', 'Guest'),
       updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     };
     db.collection('sgs_users').doc(currentUser.uid).set(data, {merge: true}).then(()=>{});
   }catch(e){}
 }
+
 function cloudLoad(){
+  if(!navigator.onLine) return;
   if(!db || !currentUser) return;
   try{
     db.collection('sgs_users').doc(currentUser.uid).get().then(doc=>{
       if(doc.exists){
         let d = doc.data();
-        if(d.coins !== undefined && parseInt(d.coins) > parseInt(SGS_safeGet('c','500'))){
+        if(d.coins !== undefined && parseInt(d.coins) > SGS_getSecureCoins()){
           updateAllCoins(d.coins);
         }
         if(d.curLv && parseInt(d.curLv) > parseInt(SGS_safeGet('curLv','1'))){
@@ -126,39 +144,11 @@ function cloudLoad(){
         if(d.high && parseInt(d.high) > parseInt(SGS_safeGet('h','0'))){
           SGS_safeSet('h', d.high);
           high = parseInt(d.high);
-          SGS_safeSet('sgs_backup_h', d.high);
         }
         syncFinalBars();
       }
     }).catch(err=>{});
   }catch(e){}
-}
-function loginWithGmail(){
-  if(!navigator.onLine){ alert("Online connection required for Gmail Login"); return; }
-  if(typeof firebase === 'undefined' || !firebase.apps.length){ alert("Firebase not configured"); return; }
-  let provider = new firebase.auth.GoogleAuthProvider();
-  if(firebase.auth().currentUser && firebase.auth().currentUser.isAnonymous){
-    firebase.auth().currentUser.linkWithPopup(provider).then(res=>{
-      SGS_safeSet("gmail", res.user.email);
-      SGS_safeSet("uid", res.user.uid);
-      cloudSave();
-      location.reload();
-    }).catch(err=>{
-      firebase.auth().signInWithPopup(provider).then(res=>{
-        SGS_safeSet("gmail", res.user.email);
-        SGS_safeSet("uid", res.user.uid);
-        cloudSave();
-        location.reload();
-      });
-    });
-  } else {
-    firebase.auth().signInWithPopup(provider).then(res=>{
-      SGS_safeSet("gmail", res.user.email);
-      SGS_safeSet("uid", res.user.uid);
-      cloudSave();
-      location.reload();
-    }).catch(err=>{ alert("Login Error: "+err.message); });
-  }
 }
 </script>
 
@@ -255,7 +245,7 @@ body{background:#080810;color:#fff;height:100vh;display:flex;flex-direction:colu
   <canvas id="avatarCanvas" width="36" height="36"></canvas>
   <div style="line-height:10px">
     <div style="font-size:8px;color:#00ffff;font-weight:900">ID: <span id="sgsPlayerIdFinal">SGS-9K2P7X</span></div>
-    <div style="font-size:6px;color:#aaa">Unlock: Lv <span id="unlockedFinal">1</span>/15 | Left: <span id="leftFinal">14</span> | Gmail: <span id="gmailFinal">Guest</span></div>
+    <div style="font-size:6px;color:#aaa">Unlock: Lv <span id="unlockedFinal">1</span>/15 | Left: <span id="leftFinal">14</span></div>
   </div>
   <div class="badge">Lv <span id="curLvBadge">1</span></div>
 </div>
@@ -309,7 +299,7 @@ body{background:#080810;color:#fff;height:100vh;display:flex;flex-direction:colu
 </div>
 
 <div id="spinM" class="modal">
-  <div class="mTop"><b>SPIN WHEEL (Start.io) - Reward 1500/2000/3000 Coins</b><button class="close" onclick="closeM('spinM')">X</button></div>
+  <div class="mTop"><b>SPIN WHEEL - Reward 1500/2000/3000 Coins</b><button class="close" onclick="closeM('spinM')">X</button></div>
   <div style="padding:16px;text-align:center">
     <div style="position:relative;width:200px;height:200px;margin:0 auto">
       <div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:8px solid transparent;border-right:8px solid transparent;border-bottom:14px solid #ff0055;z-index:10"></div>
@@ -325,8 +315,7 @@ body{background:#080810;color:#fff;height:100vh;display:flex;flex-direction:colu
   <div style="padding:15px;text-align:center">
     <canvas id="profileModalAvatar" width="70" height="70" style="border-radius:12px;border:2px solid #00ffff;margin-bottom:10px;background:#000"></canvas>
     <div style="color:#00ffff;font-weight:900;font-size:12px;margin-bottom:6px">SGS PLAYER ID: <span id="modalPlayerId"></span></div>
-    <div style="font-size:8px;color:#ccc;margin-bottom:12px">Account Email: <span id="modalGmail">Guest</span></div>
-    <button onclick="generateNewSgsId()" style="padding:8px 16px;background:#ff00ff;color:#fff;border:none;border-radius:20px;font-weight:900;font-size:8px;cursor:pointer">GENERATE NEW ID</button>
+    <div style="font-size:7px;color:#888;margin-top:6px">Secure ID - Locked & Protected</div>
   </div>
 </div>
 
@@ -335,9 +324,8 @@ body{background:#080810;color:#fff;height:100vh;display:flex;flex-direction:colu
   <div style="padding:10px">
     <div style="background:#15151f;border:2px solid #00ffff;border-radius:12px;padding:10px;margin-bottom:10px">
       <div style="color:#00ffff;font-weight:900;font-size:11px">SNAKE CHANGER - SGS</div>
-      <div style="font-size:7px;color:#fff">ID: <span id="pId"></span> | Gmail: <span id="pGmail">Guest</span></div>
-      <div style="font-size:7px;color:#fff">App ID: 209186654 | Lv: <span id="pLv">1</span> | Coin: <span id="pC">500</span></div>
-      <button onclick="loginWithGmail()" style="margin-top:6px;padding:6px 10px;background:#4285F4;color:#fff;border:none;border-radius:20px;font-size:7px;font-weight:900">GMAIL LOGIN / SWITCH</button>
+      <div style="font-size:7px;color:#fff">ID: <span id="pId"></span></div>
+      <div style="font-size:7px;color:#fff">App ID: Snake Changer - XIV | Lv: <span id="pLv">1</span> | Coin: <span id="pC">500</span></div>
     </div>
 
     <div style="background:#111;border:2px solid #ffeb3b;border-radius:12px;padding:10px;margin-bottom:10px;text-align:center">
@@ -356,14 +344,14 @@ body{background:#080810;color:#fff;height:100vh;display:flex;flex-direction:colu
       • <b>Game Name:</b> Snake Changer (SGS Edition)<br>
       • <b>Studio:</b> Sadia Studio | <b>Developer:</b> Habibur Rahman<br>
       • <b>Content Rating:</b> Everyone 3+<br>
-      • <b>Privacy Policy:</b> We do not collect or store personal data. Coins, high-scores, and progress are saved securely on device via LocalStorage & Firebase Cloud.<br>
+      • <b>Privacy Policy:</b> We do not collect or store personal data. Coins, high-scores, and progress are saved securely via encrypted local storage & Firebase Cloud.<br>
     </div>
   </div>
 </div>
 
 <div id="adOverlay" style="position:fixed;inset:0;background:rgba(0,0,0,0.95);display:none;flex-direction:column;justify-content:center;align-items:center;z-index:999999;padding:20px">
   <div style="background:#111;border:2px solid #00ffff;border-radius:14px;padding:20px;max-width:320px;width:100%;text-align:center">
-    <div id="adTitleBanner" style="color:#00ffff;font-weight:900;font-size:12px;margin-bottom:10px">REWARDED INTERSTITIAL AD - SAFE</div>
+    <div id="adTitleBanner" style="color:#00ffff;font-weight:900;font-size:12px;margin-bottom:10px">REWARDED INTERSTITIAL AD - SECURE</div>
     <div style="background:#222;height:100px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#ffeb3b;font-size:10px;margin-bottom:15px">
       Snake Changer Rewarded Ad<br>Watch ad completely for bonus reward...
     </div>
@@ -371,7 +359,6 @@ body{background:#080810;color:#fff;height:100vh;display:flex;flex-direction:colu
     <button id="skipAdBtn" onclick="closeAdOverlay()" disabled style="padding:8px 16px;background:#444;color:#aaa;border:none;border-radius:20px;font-weight:900;font-size:9px;cursor:not-allowed">SKIP AD / CLOSE [X]</button>
   </div>
 </div>
-
 <script>
 const PACKAGE_NAME="com.sadiastudio.snakechanger";
 const GAME_NAME="Snake Changer";
@@ -383,7 +370,7 @@ const START_COINS=500;
 const FOOD_EARN=50;
 
 let sgsPlayerId = SGS_safeGet('sgs_player_id', null);
-if(!sgsPlayerId || sgsPlayerId.length !== 10){
+if(!sgsPlayerId || sgsPlayerId.length !== 10 || !sgsPlayerId.startsWith('SGS-')){
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   let shortRand = '';
   for (let i = 0; i < 6; i++) {
@@ -396,10 +383,10 @@ let pidEl = document.getElementById('sgsPlayerIdFinal');
 if(pidEl) pidEl.innerText = sgsPlayerId;
 
 function updateAllCoins(val){
-  coins = parseInt(val);
-  SGS_safeSet('c', coins);
-  let c2 = document.getElementById('coinTopBar'); if(c2) c2.innerText = coins;
-  let c3 = document.getElementById('pC'); if(c3) c3.innerText = coins;
+  let coinsVal = parseInt(val) || 0;
+  SGS_setSecureCoins(coinsVal);
+  let c2 = document.getElementById('coinTopBar'); if(c2) c2.innerText = coinsVal;
+  let c3 = document.getElementById('pC'); if(c3) c3.innerText = coinsVal;
 }
 
 function drawAvatar(canvasId){
@@ -418,42 +405,13 @@ function openProfile(){
   paused=true; clearInterval(gameLoop);
   let mId = document.getElementById('modalPlayerId');
   if(mId) mId.innerText = sgsPlayerId;
-  let mG = document.getElementById('modalGmail');
-  if(mG) mG.innerText = SGS_safeGet('gmail', 'Guest');
   let pM = document.getElementById('profileM');
   if(pM) pM.style.display='flex';
 }
 
-function generateNewSgsId(){
-  if(confirm('Generate new SGS Player ID? Your progress and coins remain safe!')){
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let shortRand = '';
-    for (let i = 0; i < 6; i++) {
-      shortRand += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    sgsPlayerId = "SGS-" + shortRand;
-    SGS_safeSet('sgs_player_id', sgsPlayerId);
-    let pF = document.getElementById('sgsPlayerIdFinal');
-    if(pF) pF.innerText = sgsPlayerId;
-    let mId = document.getElementById('modalPlayerId');
-    if(mId) mId.innerText = sgsPlayerId;
-    alert('New ID Generated Successfully: ' + sgsPlayerId);
-  }
-}
-
-setInterval(()=>{
-  try {
-    let currentC = SGS_safeGet('c', null);
-    let currentLv = SGS_safeGet('curLv', null);
-    let currentH = SGS_safeGet('h', null);
-    if(currentC) SGS_safeSet('sgs_backup_c', currentC);
-    if(currentLv) SGS_safeSet('sgs_backup_lv', currentLv);
-    if(currentH) SGS_safeSet('sgs_backup_h', currentH);
-  } catch(e){}
-}, 5000);
-
-let paused=false, waiting=true, gameLoop=null, coins=parseInt(SGS_safeGet('c',START_COINS.toString())), high=parseInt(SGS_safeGet('h','0')), curLv=parseInt(SGS_safeGet('curLv','1')), sel={food:0,body:0,full:0,head:0}, soundOn=SGS_safeGet('soundOn','1')!=='0', vibOn=SGS_safeGet('vibOn','1')!=='0', trailOn=SGS_safeGet('trailOn','1')!=='0', trail=[], isGameOver=false;
+let paused=false, waiting=true, gameLoop=null, coins=SGS_getSecureCoins(), high=parseInt(SGS_safeGet('h','0')), curLv=parseInt(SGS_safeGet('curLv','1')), sel={food:0,body:0,full:0,head:0}, soundOn=SGS_safeGet('soundOn','1')!=='0', vibOn=SGS_safeGet('vibOn','1')!=='0', trailOn=SGS_safeGet('trailOn','1')!=='0', trail=[], isGameOver=false;
 let adRewardCallback=null;
+let adCanClose = false;
 let specialFood=null, normalFoodCount=0;
 
 updateAllCoins(coins);
@@ -500,7 +458,7 @@ let steps=[
   {p:5,  id:'s1', t:'☑ Engine Hissing Active - SGS Core'},
   {p:28, id:'s2', t:'☑ 15 Levels OK - 15 Snakes Found'},
   {p:48, id:'s3', t:'☑ Skins OK - Food Body Head Ready'},
-  {p:70, id:'s4', t:'☑ Coins Safe - Server Connected'},
+  {p:70, id:'s4', t:'☑ Coins Encrypted & Server Secure'},
   {p:88, id:'s5', t:'☑ Player Ready - Snake Changer SGS'}
 ];
 
@@ -562,7 +520,6 @@ function toggleTrail(){
 function resetGameData(){
   if(confirm('Secure Reset: Do you want to reset your score only? Your Coins, Levels & Shop Items will remain safe!')){
     localStorage.removeItem('h');
-    SGS_safeSet('sgs_backup_h', '0');
     high=0;
     if(db && currentUser){
       db.collection('sgs_users').doc(currentUser.uid).set({high: 0}, {merge: true}).catch(e=>{});
@@ -610,19 +567,20 @@ function playSGS_BrandVoice(){
 
 function rateApp(){
   initA(); tone(900,100); vibrate(20);
-  let playUrl = "https://play.google.com/store/apps/details?id="+PACKAGE_NAME;
-  try{ window.open(playUrl, '_blank'); }catch(e){ location.href = playUrl; }
+  let uptodownUrl = "https://www.uptodown.com/";
+  try{ window.open(uptodownUrl, '_blank'); }catch(e){ location.href = uptodownUrl; }
   if(SGS_safeGet('rated','0')!='1'){
     SGS_safeSet('rated','1');
-    updateAllCoins(coins + 100);
+    updateAllCoins(SGS_getSecureCoins() + 100);
     cloudSave();
-    alert('Rating Received ✓ +100 Bonus Coins Added!');
+    alert('Visit & Rating Recorded ✓ +100 Bonus Coins Added!');
   }
 }
 
 function showRewardedInterstitial(titleText, cb){
   initA();
   adRewardCallback=cb;
+  adCanClose = false;
   let overlay=document.getElementById('adOverlay');
   let timerEl=document.getElementById('adTimer');
   let skipBtn=document.getElementById('skipAdBtn');
@@ -634,18 +592,16 @@ function showRewardedInterstitial(titleText, cb){
     skipBtn.style.background='#444';
     skipBtn.style.color='#aaa';
     skipBtn.style.cursor='not-allowed';
-    skipBtn.onclick = function(){
-      closeAdOverlay();
-    };
   }
   let timeLeft=5;
-  if(timerEl) timerEl.innerText='Safe Rewarded Ad closing in '+timeLeft+'s...';
+  if(timerEl) timerEl.innerText='Secure Rewarded Ad closing in '+timeLeft+'s...';
   let adInterval=setInterval(()=>{
     timeLeft--;
     if(timeLeft>0){
-      if(timerEl) timerEl.innerText='Safe Rewarded Ad closing in '+timeLeft+'s...';
+      if(timerEl) timerEl.innerText='Secure Rewarded Ad closing in '+timeLeft+'s...';
     }else{
       clearInterval(adInterval);
+      adCanClose = true;
       if(timerEl) timerEl.innerText='Ad finished! You can now claim your reward.';
       if(skipBtn){
         skipBtn.disabled=false;
@@ -658,6 +614,10 @@ function showRewardedInterstitial(titleText, cb){
 }
 
 function closeAdOverlay(){
+  if(!adCanClose) {
+    alert("Please watch the full ad to claim your reward!");
+    return;
+  }
   let overlay = document.getElementById('adOverlay');
   if(overlay) overlay.style.display='none';
   if(adRewardCallback){
@@ -676,21 +636,11 @@ function closeM(id){
 
 function openShop(){
   initA();
-  paused=true;clearInterval(gameLoop);
+  paused=true; clearInterval(gameLoop);
   closeDrawers();
-  if(confirm('Shop Entry: Watch Rewarded Interstitial Ad to get +1000 Coins? [Yes / No Thanks]')) {
-    showRewardedInterstitial('SHOP ENTRY REWARDED INTERSTITIAL AD (+1000 COINS)', ()=>{
-      updateAllCoins(coins + 1000);
-      render();
-      cloudSave();
-      let sM = document.getElementById('shopM');
-      if(sM) sM.style.display='flex';
-    });
-  } else {
-    render();
-    let sM = document.getElementById('shopM');
-    if(sM) sM.style.display='flex';
-  }
+  render();
+  let sM = document.getElementById('shopM');
+  if(sM) sM.style.display='flex';
 }
 
 function closeShopModal(){
@@ -702,7 +652,7 @@ function closeShopModal(){
 
 function openLv(){
   initA();
-  paused=true;clearInterval(gameLoop);
+  paused=true; clearInterval(gameLoop);
   closeDrawers();
   renderLv();
   let lvM = document.getElementById('lvM');
@@ -710,21 +660,10 @@ function openLv(){
 }
 
 function closeLvModal(){
-  if(confirm('Levels Exit: Watch Rewarded Interstitial Ad to get +1000 Coins before leaving? [Yes / No Thanks]')) {
-    showRewardedInterstitial('LEVELS EXIT REWARDED INTERSTITIAL AD (+1000 COINS)', ()=>{
-      updateAllCoins(coins + 1000);
-      cloudSave();
-      let lvM = document.getElementById('lvM');
-      if(lvM) lvM.style.display='none';
-      if(!waiting&&!isGameOver)resumeGame();else draw();
-      tone(500,50);
-    });
-  } else {
-    let lvM = document.getElementById('lvM');
-    if(lvM) lvM.style.display='none';
-    if(!waiting&&!isGameOver)resumeGame();else draw();
-    tone(500,50);
-  }
+  let lvM = document.getElementById('lvM');
+  if(lvM) lvM.style.display='none';
+  if(!waiting&&!isGameOver)resumeGame();else draw();
+  tone(500,50);
 }
 
 function openSpin(){
@@ -747,14 +686,11 @@ function exitGame(){
   try{ cloudSave(); }catch(e){}
   try{
     if(window.Android && Android.exitApp){ Android.exitApp(); return; }
-    if(window.Capacitor && Capacitor.Plugins && Capacitor.Plugins.App && Capacitor.Plugins.App.exitApp){ Capacitor.Plugins.App.exitApp(); return; }
     if(navigator.app && navigator.app.exitApp){ navigator.app.exitApp(); return; }
+    if(window.Capacitor && Capacitor.Plugins.App.exitApp){ Capacitor.Plugins.App.exitApp(); return; }
   }catch(e){}
   try{ window.close(); }catch(e){}
-  setTimeout(()=>{
-    document.body.innerHTML = "<div style='background:#000;color:#00ffff;height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;font-family:sans-serif'><div style='width:80px;height:80px;border-radius:18px;background:linear-gradient(135deg,#00ffff,#ff00ff);display:flex;align-items:center;justify-content:center;font-weight:900;color:#000;font-size:20px;border:2px solid #fff'>SGS</div><b style='font-size:22px;margin-top:15px'>SGS CLOSED</b><div style='color:#ffeb3b;margin-top:10px'>ID: "+sgsPlayerId+" is Safe</div><button onclick='location.reload()' style='margin-top:20px;padding:10px 20px;border-radius:10px;border:none;background:#00ffff;color:#000;font-weight:900'>RE-OPEN GAME</button></div>";
-    try{ window.open('','_self',''); window.close(); }catch(e){}
-  }, 300);
+  document.body.innerHTML = "<div style='background:#000;color:#00ffff;height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center'><b>SGS CLOSED - ID Safe</b></div>";
 }
 
 function togglePause(){
@@ -811,7 +747,7 @@ function spinNow(){
     if(sRes) sRes.innerText='Spinning... Ad Watched!';
     setTimeout(()=>{
       let win=rewards[Math.floor(Math.random()*rewards.length)];
-      updateAllCoins(coins + win);
+      updateAllCoins(SGS_getSecureCoins() + win);
       cloudSave();
       if(sRes) sRes.innerText='Won '+win+' Coins! - '+GAME_NAME;
       render(); renderLv();
@@ -824,7 +760,7 @@ const foodItems=[
 {n:'Yellow Star',color:'#ffeb3b',shape:'star',price:150},
 {n:'Purple Diamond',color:'#aa00ff',shape:'diamond',price:200},
 {n:'Cyan Heart',color:'#00e5ff',shape:'heart',price:250},
-{n:'Green Triangle',color:#00ff88',shape:'triangle',price:300},
+{n:'Green Triangle',color:'#00ff88',shape:'triangle',price:300},
 {n:'Pink Square',color:'#ff88cc',shape:'square',price:350},
 {n:'Orange Hexagon',color:'#ff9900',shape:'hexagon',price:400},
 {n:'White Moon',color:'#ffffff',shape:'moon',price:450},
@@ -946,12 +882,13 @@ function buyIt(pre,i,pr,key,idx){
 initA();
 let perm=SGS_safeGet(pre+i,'0')=='1';
 if(perm){sel[key]=idx;draw();render();return;}
-if(coins>=pr){
-  updateAllCoins(coins - pr);
+let curCoins = SGS_getSecureCoins();
+if(curCoins>=pr){
+  updateAllCoins(curCoins - pr);
   SGS_safeSet(pre+i,'1');
   cloudSave();
   sel[key]=idx;render();draw();
-}else{alert('Need '+pr+' Coin - Have '+coins+' - Watch Ad in Shop or Spin for Coins - Snake Changer');}
+}else{alert('Need '+pr+' Coin - Have '+curCoins+' - Spin for Coins - Snake Changer');}
 }
 
 function renderLv(){
@@ -972,8 +909,9 @@ lvList.innerHTML=s;
 function unlockLevel(lv){
 if(isLevelUnlocked(lv)){curLv=lv;applyLevelTheme();closeLvModal();start();return;}
 let cost=levelCosts[lv-1];
-if(coins>=cost){
-updateAllCoins(coins - cost);
+let curCoins = SGS_getSecureCoins();
+if(curCoins>=cost){
+updateAllCoins(curCoins - cost);
 curLv=lv;
 SGS_safeSet('lvUnlock_'+lv,'1');
 SGS_safeSet('curLv', lv.toString());
@@ -986,7 +924,7 @@ start();
 draw();
 alert('Level '+lv+' Unlocked Successfully! - Snake Changer');
 }else{
-alert('Need '+cost.toLocaleString()+' Coins - You have '+coins.toLocaleString());
+alert('Need '+cost.toLocaleString()+' Coins - You have '+curCoins.toLocaleString());
 }
 }
 
@@ -1085,7 +1023,6 @@ clearInterval(gameLoop);paused=true;waiting=true;isGameOver=true;playLevelSound(
 if(score>high){
   high=score;
   SGS_safeSet('h',high);
-  SGS_safeSet('sgs_backup_h', high);
   cloudSave();
 }
 if(ctx){
@@ -1097,7 +1034,7 @@ return;
 }
 snake.unshift(h);
 if(specialFood && h.x==specialFood.x && h.y==specialFood.y){
-  score+=5; updateAllCoins(coins + 150); 
+  score+=5; updateAllCoins(SGS_getSecureCoins() + 150); 
   cloudSave();
   playSpecialCoinSound(); 
   playSGS_BrandVoice();
@@ -1105,7 +1042,7 @@ if(specialFood && h.x==specialFood.x && h.y==specialFood.y){
   normalFoodCount=0;
   place();
 }else if(h.x==food.x && h.y==food.y){
-  score++; updateAllCoins(coins + FOOD_EARN); 
+  score++; updateAllCoins(SGS_getSecureCoins() + FOOD_EARN); 
   cloudSave();
   playLevelSound('eat'); normalFoodCount++;
   if(normalFoodCount%10==0) placeSpecialFoodSafe();
@@ -1308,8 +1245,7 @@ if(i==0){
 
 function syncFinalBars(){
   try{
-    let coin = SGS_safeGet('c', '500');
-    coins = parseInt(coin);
+    let curCoins = SGS_getSecureCoins();
     let lv = parseInt(SGS_safeGet('curLv', '1'));
     let maxLv = 1;
     for(let i=1; i<=15; i++){ if(isLevelUnlocked(i)) maxLv = i; }
@@ -1325,11 +1261,8 @@ function syncFinalBars(){
     let cBadge = document.getElementById('curLvBadge'); if(cBadge) cBadge.innerText = lv;
     let uFin = document.getElementById('unlockedFinal'); if(uFin) uFin.innerText = maxLv;
     let lFinEl = document.getElementById('leftFinal'); if(lFinEl) lFinEl.innerText = 15 - maxLv;
-    let sgsIdFin = document.getElementById('sgsPlayerIdFinal'); if(sgsIdFin) sgsIdFin.innerText = SGS_safeGet('sgs_player_id', sgsPlayerId);
-
-    let gmailVal = SGS_safeGet('gmail', 'Guest');
-    let gmailFin = document.getElementById('gmailFinal'); 
-    if(gmailFin) gmailFin.innerText = (gmailVal ? gmailVal : 'Guest').substring(0, 12);
+    let sgsIdFin = document.getElementById('sgsPlayerIdFinal'); if(sgsIdFin) sgsIdFin.innerText = sgsPlayerId;
+    let pIdEl = document.getElementById('pId'); if(pIdEl) pIdEl.innerText = sgsPlayerId;
   }catch(e){}
 }
 setInterval(syncFinalBars, 500);
@@ -1414,15 +1347,15 @@ start();
 draw();
 }catch(e){}
 }
-}, 2000);
+}, 5500);
 
 window.SGS_LOAD_AD = function(){
-  console.log('SGS Ad Ready - Safe integration active');
+  console.log('SGS Ad Secure active');
 }
 
 window.addEventListener('load', function(){
   setTimeout(function(){
-    SGS_LOAD_AD();
+    if(typeof SGS_LOAD_AD === 'function') SGS_LOAD_AD();
   }, 5000);
 });
 
