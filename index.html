@@ -7,6 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" content="#00ffff">
+<meta name="monetag" content="0f4b2c80eba77b6380a164a6194adf36">
 <title>Snake Changer - SGS - Secure Edition</title>
 
 <script>
@@ -194,7 +195,7 @@ body{background:#080810;color:#fff;height:100vh;display:flex;flex-direction:colu
 @keyframes pulseH{0%{opacity:0.6}50%{opacity:1;transform:translateY(-50%) scale(1.1)}100%{opacity:0.6}}
 
 .tb{padding:7px 10px;background:#15151f;color:#00ffff;border-radius:9px;font-weight:800;font-size:7px;border:1px solid #00ffff44;cursor:pointer}
-.tb.ok{background:#00ffff;color:#000}.tb.exit{background:#111;color:#ff4444}
+.tb.ok{background:#00ffff;color:#000}
 
 .controls{display:grid;grid-template-columns:65px 65px 65px;grid-template-rows:48px 48px 48px;gap:6px;justify-content:center;margin:12px auto 10px auto}
 .cb{background:#15151f;border:2px solid #00ffff55;border-radius:14px;color:#00ffff;font-size:18px;font-weight:900;cursor:pointer}
@@ -268,7 +269,7 @@ body{background:#080810;color:#fff;height:100vh;display:flex;flex-direction:colu
   <button class="tb" onclick="openShop()">SHOP UNIQUE</button>
   <button class="tb" onclick="openLv()">LEVELS LOCK</button>
   <button class="tb" onclick="openSpin()">SPIN WHEEL</button>
-  <button class="tb exit" onclick="closeDrawers()">CLOSE</button>
+  <button class="tb" onclick="closeDrawers()">CLOSE</button>
 </div>
 <div id="rightDrawer" class="drawer">
   <b style="color:#00ff88;font-size:9px">RIGHT MENU</b>
@@ -517,15 +518,17 @@ function toggleTrail(){
 }
 
 function resetGameData(){
-  if(confirm('Secure Reset: Do you want to reset your score only? Your Coins, Levels & Shop Items will remain safe!')){
-    localStorage.removeItem('h');
-    high=0;
-    if(db && currentUser){
-      db.collection('sgs_users').doc(currentUser.uid).set({high: 0}, {merge: true}).catch(e=>{});
+  SGS_confirm('Secure Reset: Do you want to reset your score only? Your Coins, Levels & Shop Items will remain safe!', (ok)=>{
+    if(ok){
+      localStorage.removeItem('h');
+      high=0;
+      if(db && currentUser){
+        db.collection('sgs_users').doc(currentUser.uid).set({high: 0}, {merge: true}).catch(e=>{});
+      }
+      SGS_alert('Score Reset Successfully! Your Coins & Levels are safe.');
+      location.reload();
     }
-    alert('Score Reset Successfully! Your Coins & Levels are safe.');
-    location.reload();
-  }
+  });
 }
 
 function playLevelSound(a){
@@ -572,7 +575,7 @@ function rateApp(){
     SGS_safeSet('rated','1');
     updateAllCoins(SGS_getSecureCoins() + 100);
     cloudSave();
-    alert('Visit & Rating Recorded ✓ +100 Bonus Coins Added!');
+    SGS_alert('Visit & Rating Recorded ✓ +100 Bonus Coins Added!');
   }
 }
 
@@ -614,7 +617,7 @@ function showRewardedInterstitial(titleText, cb){
 
 function closeAdOverlay(){
   if(!adCanClose) {
-    alert("Please watch the full ad to claim your reward!");
+    SGS_alert("Please watch the full ad to claim your reward!");
     return;
   }
   let overlay = document.getElementById('adOverlay');
@@ -679,17 +682,20 @@ function openSettings(){
   let setM = document.getElementById('settingsM');
   if(setM) setM.style.display='flex';
 }
-
+</script>
+<script>
 function exitGame(){
-  if(!confirm('Exit Snake Changer? Your Progress is Safe! ID: '+sgsPlayerId)) return;
-  try{ cloudSave(); }catch(e){}
-  try{
-    if(window.Android && Android.exitApp){ Android.exitApp(); return; }
-    if(navigator.app && navigator.app.exitApp){ navigator.app.exitApp(); return; }
-    if(window.Capacitor && Capacitor.Plugins.App.exitApp){ Capacitor.Plugins.App.exitApp(); return; }
-  }catch(e){}
-  try{ window.close(); }catch(e){}
-  document.body.innerHTML = "<div style='background:#000;color:#00ffff;height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center'><b>SGS CLOSED - ID Safe</b></div>";
+  SGS_confirm('Exit Snake Changer? Your Progress is Safe! ID: '+sgsPlayerId, (ok)=>{
+    if(ok){
+      try{ cloudSave(); }catch(e){}
+      try{
+        if(window.Android && Android.exitApp){ Android.exitApp(); return; }
+        if(navigator.app && navigator.app.exitApp){ navigator.app.exitApp(); return; }
+      }catch(e){}
+      try{ window.close(); }catch(e){}
+      document.body.innerHTML = "<div style='background:#000;color:#00ffff;height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center'><b>SGS CLOSED - ID Safe: "+sgsPlayerId+"</b></div>";
+    }
+  });
 }
 
 function togglePause(){
@@ -887,7 +893,7 @@ if(curCoins>=pr){
   SGS_safeSet(pre+i,'1');
   cloudSave();
   sel[key]=idx;render();draw();
-}else{alert('Need '+pr+' Coin - Have '+curCoins+' - Spin for Coins - Snake Changer');}
+}else{SGS_alert('Need '+pr+' Coin - Have '+curCoins+' - Spin for Coins - Snake Changer');}
 }
 
 function renderLv(){
@@ -921,9 +927,9 @@ let lvM = document.getElementById('lvM');
 if(lvM) lvM.style.display='none';
 start();
 draw();
-alert('Level '+lv+' Unlocked Successfully! - Snake Changer');
+SGS_alert('Level '+lv+' Unlocked Successfully! - Snake Changer');
 }else{
-alert('Need '+cost.toLocaleString()+' Coins - You have '+curCoins.toLocaleString());
+SGS_alert('Need '+cost.toLocaleString()+' Coins - You have '+curCoins.toLocaleString());
 }
 }
 
@@ -1325,7 +1331,7 @@ window.addEventListener('popstate', ()=>{
   } else {
     sgsBackTrap++;
     if(sgsBackTrap===1){
-      alert('Press Back Again To Exit SGS - ID Safe');
+      SGS_alert('Press Back Again To Exit SGS - ID Safe');
       try{ history.pushState({sgs:'home'},'', ''); }catch(e){}
       setTimeout(()=>sgsBackTrap=0, 2000);
     } else {
@@ -1364,6 +1370,33 @@ if ('serviceWorker' in navigator) {
       .then(reg => console.log('SGS Service Worker Registered!', reg.scope))
       .catch(err => console.log('SW Registration Failed:', err));
   });
+}
+
+// === SGS CUSTOM ALERT - NO github.io says ===
+function SGS_alert(msg){
+  let d=document.createElement('div');
+  d.id='sgsCustomAlert';
+  d.style="position:fixed;inset:0;background:rgba(0,0,0,0.85);display:flex;justify-content:center;align-items:center;z-index:9999999";
+  d.innerHTML=`<div style="background:#111;border:2px solid #00ffff;border-radius:14px;padding:20px;max-width:300px;width:90%;text-align:center;color:#fff;font-family:sans-serif">
+  <b style="color:#00ffff;font-size:12px">SNAKE CHANGER - SGS</b><br><br>
+  <div style="font-size:10px;line-height:16px">${msg}</div><br>
+  <button onclick="document.getElementById('sgsCustomAlert').remove()" style="padding:8px 22px;background:#00ffff;color:#000;border:none;border-radius:20px;font-weight:900;cursor:pointer">OK</button>
+  </div>`;
+  document.body.appendChild(d);
+}
+function SGS_confirm(msg, cb){
+  let d=document.createElement('div');
+  d.id='sgsCustomConfirm';
+  d.style="position:fixed;inset:0;background:rgba(0,0,0,0.85);display:flex;justify-content:center;align-items:center;z-index:9999999";
+  d.innerHTML=`<div style="background:#111;border:2px solid #ffeb3b;border-radius:14px;padding:20px;max-width:300px;width:90%;text-align:center;color:#fff">
+  <b style="color:#00ffff;font-size:11px">SGS CONFIRM</b><br><br>
+  <div style="font-size:10px">${msg}</div><br>
+  <button id="sgsYes" style="padding:8px 18px;background:#00ff88;color:#000;border:none;border-radius:20px;font-weight:900;margin-right:8px">YES</button>
+  <button id="sgsNo" style="padding:8px 18px;background:#444;color:#fff;border:none;border-radius:20px;font-weight:900">NO</button>
+  </div>`;
+  document.body.appendChild(d);
+  document.getElementById('sgsYes').onclick=()=>{d.remove();cb(true)};
+  document.getElementById('sgsNo').onclick=()=>{d.remove();cb(false)};
 }
 </script>
 </body>
