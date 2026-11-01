@@ -41,7 +41,7 @@ function SGS_getSecureCoins() {
     return oldC;
   }
   try {
-    let decoded = Math.floor(atob(raw) / 7 - 123);
+    let decoded = Math.floor((parseInt(atob(raw)) - 123) / 7);
     if (isNaN(decoded) || decoded < 0) return 500;
     return decoded;
   } catch (e) {
@@ -51,9 +51,8 @@ function SGS_getSecureCoins() {
 
 function SGS_setSecureCoins(val) {
   try {
-    let enc = btoa((parseInt(val) || 0) * 7 + 123);
+    let enc = btoa(((parseInt(val) || 0) * 7 + 123).toString());
     SGS_safeSet('sgs_secure_c', enc);
-    SGS_safeSet('c', val);
   } catch (e) {}
 }
 
@@ -74,7 +73,7 @@ function SGS_setSecureCoins(val) {
     }
 
     let pid = SGS_safeGet('sgs_player_id', null);
-    if (!pid || pid.length !== 10 || !pid.startsWith('SGS-')) {
+    if (!pid || !pid.startsWith('SGS-')) {
       const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
       let shortRand = '';
       for (let i = 0; i < 6; i++) {
@@ -136,17 +135,17 @@ function cloudLoad(){
     db.collection('sgs_users').doc(currentUser.uid).get().then(doc=>{
       if(doc.exists){
         let d = doc.data();
-        if(d.coins !== undefined && parseInt(d.coins) > SGS_getSecureCoins()){
-          updateAllCoins(d.coins);
+        if(d.coins !== undefined && parseInt(d.coins) >= SGS_getSecureCoins()){
+          if(typeof updateAllCoins === 'function') updateAllCoins(d.coins);
         }
-        if(d.curLv && parseInt(d.curLv) > parseInt(SGS_safeGet('curLv','1'))){
+        if(d.curLv && parseInt(d.curLv) >= parseInt(SGS_safeGet('curLv','1'))){
           SGS_safeSet('curLv', d.curLv);
         }
-        if(d.high && parseInt(d.high) > parseInt(SGS_safeGet('h','0'))){
+        if(d.high && parseInt(d.high) >= parseInt(SGS_safeGet('h','0'))){
           SGS_safeSet('h', d.high);
           high = parseInt(d.high);
         }
-        syncFinalBars();
+        if(typeof syncFinalBars === 'function') syncFinalBars();
       }
     }).catch(err=>{});
   }catch(e){}
@@ -269,6 +268,7 @@ body{background:#080810;color:#fff;height:100vh;display:flex;flex-direction:colu
   <button class="tb" onclick="openShop()">SHOP UNIQUE</button>
   <button class="tb" onclick="openLv()">LEVELS LOCK</button>
   <button class="tb" onclick="openSpin()">SPIN WHEEL</button>
+  <button class="tb" style="background:#ff4444;color:#fff" onclick="exitGame()">EXIT APP</button>
   <button class="tb" onclick="closeDrawers()">CLOSE</button>
 </div>
 <div id="rightDrawer" class="drawer">
@@ -370,7 +370,7 @@ const START_COINS=500;
 const FOOD_EARN=50;
 
 let sgsPlayerId = SGS_safeGet('sgs_player_id', null);
-if(!sgsPlayerId || sgsPlayerId.length !== 10 || !sgsPlayerId.startsWith('SGS-')){
+if(!sgsPlayerId || !sgsPlayerId.startsWith('SGS-')){
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   let shortRand = '';
   for (let i = 0; i < 6; i++) {
@@ -468,7 +468,7 @@ let loader=setInterval(()=>{
     if(loadTextEl) loadTextEl.innerText=loadP+'%';
 
     steps.forEach(s=>{
-        if(loadP == s.p){
+        if(loadP >= s.p){
             let el=document.getElementById(s.id);
             if(el){ el.classList.add('show', 'done'); el.innerText=s.t; }
         }
@@ -514,6 +514,7 @@ function toggleTrail(){
   trailOn=!trailOn;
   SGS_safeSet('trailOn',trailOn?'1':'0');
   initButtonUIStates();
+  if(!trailOn) trail = [];
   if(trailOn){tone(600,80);trail=[]}
 }
 
@@ -682,15 +683,13 @@ function openSettings(){
   let setM = document.getElementById('settingsM');
   if(setM) setM.style.display='flex';
 }
-</script>
-<script>
+
 function exitGame(){
   SGS_confirm('Exit Snake Changer? Your Progress is Safe! ID: '+sgsPlayerId, (ok)=>{
     if(ok){
       try{ cloudSave(); }catch(e){}
       try{
         if(window.Android && Android.exitApp){ Android.exitApp(); return; }
-        if(navigator.app && navigator.app.exitApp){ navigator.app.exitApp(); return; }
       }catch(e){}
       try{ window.close(); }catch(e){}
       document.body.innerHTML = "<div style='background:#000;color:#00ffff;height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center'><b>SGS CLOSED - ID Safe: "+sgsPlayerId+"</b></div>";
@@ -707,6 +706,7 @@ function togglePause(){
 }
 
 function getSpeed(){
+  if(typeof levelConfigs === 'undefined') return 196;
   let lvlIndex = Math.max(0, Math.min(14, curLv - 1));
   let base=200, levelReduce=curLv*4;
   let bonus=levelConfigs[lvlIndex]?.speedBonus||0;
@@ -745,7 +745,7 @@ let totalSpinDegrees = 0;
 function spinNow(){
   showRewardedInterstitial('SPIN WHEEL REWARDED INTERSTITIAL AD (1500-3000)', ()=>{
     let rewards=[1500, 2000, 3000, 1500, 2000, 3000];
-    totalSpinDegrees = (totalSpinDegrees + Math.floor(Math.random() * 720) + 1800) % 3600;
+    totalSpinDegrees += Math.floor(Math.random() * 720) + 1800;
     let wheelEl = document.getElementById('wheel');
     if(wheelEl) wheelEl.style.transform='rotate('+totalSpinDegrees+'deg)';
     let sRes = document.getElementById('spinRes');
@@ -995,6 +995,11 @@ function place(){
     ok=!snake.some(s=>s.x==food.x&&s.y==food.y)&&!(specialFood&&specialFood.x==food.x&&specialFood.y==food.y);
     attempts++;
   }
+  if(attempts >= 100){
+    SGS_alert('YOU WIN');
+    isGameOver = true;
+    return;
+  }
 }
 
 function placeSpecialFoodSafe(){
@@ -1039,7 +1044,7 @@ return;
 }
 snake.unshift(h);
 if(specialFood && h.x==specialFood.x && h.y==specialFood.y){
-  score+=5; updateAllCoins(SGS_getSecureCoins() + 150); 
+  score+=1; updateAllCoins(SGS_getSecureCoins() + 150); 
   cloudSave();
   playSpecialCoinSound(); 
   playSGS_BrandVoice();
@@ -1270,7 +1275,6 @@ function syncFinalBars(){
     let pIdEl = document.getElementById('pId'); if(pIdEl) pIdEl.innerText = sgsPlayerId;
   }catch(e){}
 }
-setInterval(syncFinalBars, 500);
 
 let startX=0;
 document.addEventListener('touchstart', e=>{ 
@@ -1333,7 +1337,7 @@ window.addEventListener('popstate', ()=>{
     if(sgsBackTrap===1){
       SGS_alert('Press Back Again To Exit SGS - ID Safe');
       try{ history.pushState({sgs:'home'},'', ''); }catch(e){}
-      setTimeout(()=>sgsBackTrap=0, 2000);
+      setTimeout(()=>sgsBackTrap=0, 500);
     } else {
       exitGame();
     }
@@ -1372,18 +1376,19 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-// === SGS CUSTOM ALERT - NO github.io says ===
 function SGS_alert(msg){
+  let safeMsg = String(msg).replace(/</g,'&lt;').replace(/>/g,'&gt;');
   let d=document.createElement('div');
   d.id='sgsCustomAlert';
   d.style="position:fixed;inset:0;background:rgba(0,0,0,0.85);display:flex;justify-content:center;align-items:center;z-index:9999999";
   d.innerHTML=`<div style="background:#111;border:2px solid #00ffff;border-radius:14px;padding:20px;max-width:300px;width:90%;text-align:center;color:#fff;font-family:sans-serif">
   <b style="color:#00ffff;font-size:12px">SNAKE CHANGER - SGS</b><br><br>
-  <div style="font-size:10px;line-height:16px">${msg}</div><br>
+  <div style="font-size:10px;line-height:16px">${safeMsg}</div><br>
   <button onclick="document.getElementById('sgsCustomAlert').remove()" style="padding:8px 22px;background:#00ffff;color:#000;border:none;border-radius:20px;font-weight:900;cursor:pointer">OK</button>
   </div>`;
   document.body.appendChild(d);
 }
+
 function SGS_confirm(msg, cb){
   let d=document.createElement('div');
   d.id='sgsCustomConfirm';
