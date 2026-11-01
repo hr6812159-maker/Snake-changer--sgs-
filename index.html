@@ -688,11 +688,23 @@ function exitGame(){
   SGS_confirm('Exit Snake Changer? Your Progress is Safe! ID: '+sgsPlayerId, (ok)=>{
     if(ok){
       try{ cloudSave(); }catch(e){}
-      try{
-        if(window.Android && Android.exitApp){ Android.exitApp(); return; }
-      }catch(e){}
-      try{ window.close(); }catch(e){}
+      
       document.body.innerHTML = "<div style='background:#000;color:#00ffff;height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center'><b>SGS CLOSED - ID Safe: "+sgsPlayerId+"</b></div>";
+
+      setTimeout(()=>{
+        try{
+          if(window.Android && Android.exitApp){ Android.exitApp(); return; }
+          if(window.SGS && SGS.closeApp){ SGS.closeApp(); return; }
+          if(window.App && App.exit){ App.exit(); return; }
+        }catch(e){}
+
+        try{
+          var w = window.open('', '_self');
+          w.close();
+        }catch(e){}
+        
+        try{ window.location.href = "about:blank"; }catch(e){}
+      }, 300);
     }
   });
 }
