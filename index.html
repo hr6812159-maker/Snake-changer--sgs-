@@ -684,17 +684,28 @@ function openSettings(){
   if(setM) setM.style.display='flex';
 }
 
-function exitGame(){
-  SGS_confirm('Exit Snake Changer? Your Progress is Safe! ID: '+sgsPlayerId, (ok)=>{
-    if(ok){
-      try{ cloudSave(); }catch(e){}
-      try{
-        if(window.Android && Android.exitApp){ Android.exitApp(); return; }
-        if(window.SGS && SGS.closeApp){ SGS.closeApp(); return; }
-        if(window.App && App.exit){ App.exit(); return; }
-      }catch(e){}
-      window.close();
-    }
+function exitGame() {
+  SGS_confirm('Exit Snake Changer? Your Progress is Safe! ID: '+sgsPlayerId, (ok) => {
+    if (!ok) return;
+
+    // 1. Save progress first
+    try { if(typeof cloudSave === 'function') cloudSave(); } catch(e){}
+
+    // 2. The most effective way to clear the game view for PWABuilder
+    try { location.href = "about:blank"; } catch(e){}
+    
+    // 3. Show a clean Exit screen if about:blank is restricted
+    setTimeout(() => {
+      document.body.innerHTML = `
+        <div style="background:#000;color:#00ffff;height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:25px;font-family:sans-serif;">
+          <div style="font-size:18px;font-weight:900;margin-bottom:10px;">SNAKE CHANGER - CLOSED</div>
+          <div style="font-size:10px;color:#aaa;margin-bottom:15px;">Progress Saved! ID: <b style="color:#00ff88;">${sgsPlayerId}</b></div>
+          <div style="font-size:9px;color:#ffeb3b;background:#111;border:1px solid #ffeb3b;padding:12px;border-radius:10px;max-width:300px;line-height:15px;">
+            You can now close this app from recent apps.
+          </div>
+        </div>
+      `;
+    }, 300);
   });
 }
 
