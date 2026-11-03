@@ -1349,7 +1349,7 @@ window.addEventListener('popstate', ()=>{
     if(sgsBackTrap===1){
       SGS_alert('Press Back Again To Exit SGS - ID Safe');
       try{ history.pushState({sgs:'home'},'', ''); }catch(e){}
-      setTimeout(()=>sgsBackTrap=0, 500);
+      setTimeout(()=>sgsBackTrap=0, 2000);
     } else {
       exitGame();
     }
