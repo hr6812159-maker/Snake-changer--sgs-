@@ -687,6 +687,7 @@ function openSettings(){
 function exitGame() {
   SGS_confirm('Exit Snake Changer? Your Progress is Safe! ID: '+sgsPlayerId, (ok) => {
     if (!ok) return;
+window.SGS_EXITED = true;
 
     // 1. Save progress first
     try { if(typeof cloudSave === 'function') cloudSave(); } catch(e){}
@@ -1338,6 +1339,7 @@ document.addEventListener('visibilitychange', ()=>{
 let sgsBackTrap = 0;
 try{ history.pushState({sgs:'home'},'', ''); }catch(e){}
 window.addEventListener('popstate', ()=>{
+if(window.SGS_EXITED) return;
   let openModal = document.querySelector('#shopM[style*="flex"], #lvM[style*="flex"], #spinM[style*="flex"], #profileM[style*="flex"], #settingsM[style*="flex"], #adOverlay[style*="flex"], .drawer.open');
   if(openModal){
     document.querySelectorAll('.modal, #adOverlay').forEach(m=>m.style.display='none');
