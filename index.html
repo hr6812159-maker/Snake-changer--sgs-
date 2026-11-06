@@ -701,9 +701,10 @@ try { if(window.gameLoop) cancelAnimationFrame(window.gameLoop); } catch(e){}
         <div style="background:#000;color:#00ffff;height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:25px;font-family:sans-serif;">
           <div style="font-size:18px;font-weight:900;margin-bottom:10px;">SNAKE CHANGER - CLOSED</div>
           <div style="font-size:10px;color:#aaa;margin-bottom:15px;">Progress Saved! ID: <b style="color:#00ff88;">${sgsPlayerId}</b></div>
-          <div style="font-size:9px;color:#ffeb3b;background:#111;border:1px solid #ffeb3b;padding:12px;border-radius:10px;max-width:300px;line-height:15px;">
-            You can now close this app from recent apps.
-          </div>
+          <div style="font-size:15px;color:#fff;text-align:center;line-height:1.6;max-width:300px;">
+  This game cannot close directly.<br>
+  <b style="color:#FFD700;">Press your phone's BACK button 2 times to exit.</b>
+</div>
         </div>
       `;
     }, 300);
