@@ -692,8 +692,8 @@ window.SGS_EXITED = true;
     // 1. Save progress first
     try { if(typeof cloudSave === 'function') cloudSave(); } catch(e){}
 
-    // 2. The most effective way to clear the game view for PWABuilder
-    try { location.href = "about:blank"; } catch(e){}
+    // Keep same page, do not navigate away
+try { if(window.gameLoop) cancelAnimationFrame(window.gameLoop); } catch(e){}
     
     // 3. Show a clean Exit screen if about:blank is restricted
     setTimeout(() => {
