@@ -1421,5 +1421,25 @@ function SGS_confirm(msg, cb){
   document.getElementById('sgsNo').onclick=()=>{d.remove();cb(false)};
 }
 </script>
+<style>
+/* 1. Move the full game layout and left-right menus down */
+.left-menu, .right-menu, #leftMenu, #rightMenu {
+    margin-top: 65px !important;
+}
+
+/* 2. Move the main game screen / board a little bit down */
+.game-container, .game-screen, #gameBoard {
+    margin-top: 20px !important;
+}
+
+/* 3. Keep popup exactly in the center of the screen */
+.setting-box, .modal-popup, .popup-window, #sgsCustomConfirm {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    z-index: 9999999 !important;
+}
+</style>
 </body>
 </html>
