@@ -1440,6 +1440,24 @@ function SGS_confirm(msg, cb){
     transform: translate(-50%, -50%) !important;
     z-index: 9999999 !important;
 }
+
+/* 4. Fix banner container and ad overlap */
+#bannerContainer {
+    position: relative !important;
+    max-height: 50px !important;
+    overflow: hidden !important;
+}
+
+#bannerContainer iframe {
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    transform: none !important;
+}
+
+iframe[src*="n6wxm.com"] {
+    z-index: 99999 !important;
+}
 </style>
 </body>
 </html>
