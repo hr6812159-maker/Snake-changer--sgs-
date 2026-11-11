@@ -1422,18 +1422,49 @@ function SGS_confirm(msg, cb){
 }
 </script>
 <style>
-/* 1. Move the full game layout and left-right menus down */
-.left-menu, .right-menu, #leftMenu, #rightMenu {
-    margin-top: 65px !important;
+/* 1. Push main game body down to leave space for top ad banner */
+body {
+    padding-top: 50px !important;
 }
 
-/* 2. Move the main game screen / board a little bit down */
-.game-container, .game-screen, #gameBoard {
-    margin-top: 20px !important;
+.bannerTop {
+    margin-top: 5px !important;
+    margin-bottom: 30px !important; 
 }
 
-/* 3. Keep popup exactly in the center of the screen */
-.setting-box, .modal-popup, .popup-window, #sgsCustomConfirm {
+#playerBoxFinal {
+    margin-top: 15px !important;
+    margin-bottom: 15px !important;
+}
+
+#gameWrap {
+    margin-top: 15px !important;
+    margin-bottom: 15px !important;
+}
+
+.controls {
+    margin-top: 15px !important;
+    margin-bottom: 25px !important;
+}
+
+/* 2. Position side drawers and modals below the top ad area */
+#leftDrawer, #rightDrawer, .modal {
+    top: 115px !important; 
+} 
+
+.mTop {
+    position: sticky !important;
+    top: 0 !important;
+    background: #000 !important;
+    z-index: 10 !important;
+}
+
+.drawerHandle {
+    top: 50% !important;
+}
+
+/* 3. Keep confirmation and alert boxes centered on screen */
+#sgsCustomConfirm, #sgsCustomAlert {
     position: fixed !important;
     top: 50% !important;
     left: 50% !important;
@@ -1441,7 +1472,7 @@ function SGS_confirm(msg, cb){
     z-index: 9999999 !important;
 }
 
-/* 4. Fix banner container and ad overlap */
+/* 4. Fix banner container and iframe display */
 #bannerContainer {
     position: relative !important;
     max-height: 50px !important;
